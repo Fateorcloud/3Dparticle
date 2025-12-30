@@ -3,62 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hand Magic</title>
+    <title>3D Hand (Local)</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; touch-action: none; }
         #input_video { position: absolute; top: -9999px; left: -9999px; transform: scaleX(-1); }
         
-        /* 加载提示 */
         #loading {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            color: #00d2ff; font-size: 18px; text-align: center; width: 100%;
-            text-shadow: 0 0 10px rgba(0,210,255,0.5); pointer-events: none;
-            transition: opacity 0.5s; z-index: 999;
+            color: #00ff88; font-size: 16px; text-align: center; width: 100%; pointer-events: none;
         }
         
-        /* 底部按钮栏 */
         #ui-bar {
             position: absolute; bottom: 30px; left: 0; width: 100%;
             display: flex; justify-content: center; gap: 15px; z-index: 100;
         }
         .btn {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 16px;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 10px 20px; border-radius: 20px; backdrop-filter: blur(5px);
         }
-        .btn.active { background: #00d2ff; color: #000; font-weight: bold; border-color: #00d2ff; }
+        .btn.active { background: #00ff88; color: #000; border: none; font-weight: bold; }
     </style>
 
-    <script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <script src="https://unpkg.zhimg.com/@mediapipe/camera_utils@0.3.1632432234/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.zhimg.com/@mediapipe/control_utils@0.6.1629159505/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.zhimg.com/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.zhimg.com/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+    <script src="assets/three.min.js"></script>
+    <script src="assets/camera_utils.js"></script>
+    <script src="assets/control_utils.js"></script>
+    <script src="assets/drawing_utils.js"></script>
+    <script src="assets/hands.js"></script>
 </head>
 <body>
 
-    <div id="loading">
-        ⚡ 正在从知乎节点加载模型...<br>
-        <span style="font-size:12px;color:#aaa;margin-top:5px;display:block">首次加载约需 5 秒，请允许摄像头权限</span>
-    </div>
-    
+    <div id="loading">🚀 正在加载仓库内模型...<br>无需联网下载，极速启动</div>
     <video id="input_video" playsinline webkit-playsinline></video>
 
     <div id="ui-bar">
-        <button class="btn active" onclick="setShape('heart', this)">❤ 爱心</button>
-        <button class="btn" onclick="setShape('saturn', this)">🪐 土星</button>
+        <button class="btn active" onclick="setShape('heart', this)">❤</button>
+        <button class="btn" onclick="setShape('saturn', this)">🪐</button>
     </div>
 
 <script>
-    // === 性能配置 ===
-    const PARTICLE_COUNT = 12000; // 降低粒子数，保证手机不发烫
-    
+    const PARTICLE_COUNT = 15000;
     let scene, camera, renderer, particles, material;
     let basePositions = new Float32Array(PARTICLE_COUNT * 3);
     let handScale = 1.0, targetScale = 1.0;
 
-    // === 1. 初始化 3D ===
     function initThree() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -73,18 +60,13 @@
         const pos = new Float32Array(PARTICLE_COUNT * 3);
         for(let i=0; i<PARTICLE_COUNT*3; i++) pos[i] = (Math.random()-0.5)*60;
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-        material = new THREE.PointsMaterial({
-            color: 0x00d2ff, size: 0.2, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
-        });
-
+        material = new THREE.PointsMaterial({ color: 0x00ff88, size: 0.2, transparent: true, opacity: 0.8 });
         particles = new THREE.Points(geo, material);
         scene.add(particles);
         generateShape('heart');
         animate();
     }
 
-    // === 2. 形状算法 ===
     function generateShape(type) {
         for(let i=0; i<PARTICLE_COUNT; i++) {
             const t = Math.random()*Math.PI*2, p = Math.acos(2*Math.random()-1);
@@ -92,7 +74,7 @@
             if(type==='heart') {
                 x=16*Math.pow(Math.sin(t),3); y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t); z=(Math.random()-0.5)*4;
                 let s=Math.cbrt(Math.random())*0.6; x*=s;y*=s;z*=s;
-            } else { // saturn
+            } else { 
                  if(Math.random()>0.5) { let r=7*Math.cbrt(Math.random()); x=r*Math.sin(p)*Math.cos(t); y=r*Math.sin(p)*Math.sin(t); z=r*Math.cos(p); }
                  else { let r=Math.sqrt(Math.random()*150+50); x=r*Math.cos(t); y=r*Math.sin(t)*0.4; z=r*Math.sin(t)*0.5; y+=x*0.2; }
             }
@@ -100,39 +82,32 @@
         }
     }
 
-    // === 3. 核心修复：使用知乎源加载模型文件 ===
+    // 2. 核心：强制从 assets 文件夹加载模型
     const hands = new Hands({
         locateFile: (file) => {
-            // 这里强制指向知乎的 CDN 路径，解决卡顿问题
-            return `https://unpkg.zhimg.com/@mediapipe/hands@0.4.1646424915/${file}`;
+            // 这行代码意味着：不管要加载什么wasm/tflite文件
+            // 都去当前的 assets/ 文件夹里找！
+            return `assets/${file}`;
         }
     });
 
-    hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 0, // 0 = Lite (极速模式)，适合手机
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
-
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.5 });
     hands.onResults(results => {
-        document.getElementById('loading').style.display = 'none'; // 隐藏加载提示
+        document.getElementById('loading').style.display = 'none';
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const lm = results.multiHandLandmarks[0];
             const d = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
             targetScale = 0.2 + d * 5; 
-            material.color.setHex(0x00ff88);
+            material.color.setHex(0xff0055);
         } else {
-            material.color.setHex(0x00d2ff);
+            material.color.setHex(0x00ff88);
         }
     });
 
-    // === 4. 摄像头逻辑 (兼容 iOS/Android) ===
     const videoEl = document.getElementById('input_video');
     const cameraUtils = new Camera(videoEl, {
         onFrame: async () => { await hands.send({image: videoEl}); },
-        width: 640, height: 480,
-        facingMode: "user"
+        width: 640, height: 480, facingMode: "user"
     });
 
     initThree();
